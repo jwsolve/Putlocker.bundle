@@ -74,7 +74,7 @@ def PlayVideo(url, fmt):
 	req = HTTP.Request(finalvideo)
 	mp4file = req.content
 
-	url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', mp4file)[9]
+	url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', mp4file)[8]
 	         
        	return IndirectResponse(VideoClipObject, key = url)
 
