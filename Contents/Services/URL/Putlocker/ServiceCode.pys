@@ -1,0 +1,80 @@
+import urllib2
+import string, base64, re
+
+HTTP_HEADERS = {
+	'Accept	text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+	'Accept-Encoding:	gzip, deflate',
+	'Accept-Language:	en-US,en;q=0.5',
+	'Connection:		keep-alive',
+	'Referer:		http://putlocker.is',
+	'User-Agent:		Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0'
+}
+
+BASE_URL = 'http://putlocker.is/'
+
+########################################################################################
+def NormalizeURL(url):
+
+	return url.split('&')[0]
+
+
+
+
+########################################################################################
+def MetadataObjectForURL(url):
+
+	page = HTML.ElementFromURL(url)
+	
+	title = page.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
+	description = page.xpath("//td[@align='justify']/text()")[0]
+	thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
+	ratingvalue = url
+
+	return VideoClipObject(
+		title = title,
+		summary = description,
+		thumb = thumb,
+		rating_key = ratingvalue
+	)
+
+########################################################################################
+def MediaObjectsForURL(url):
+
+	return [
+        	MediaObject(
+			parts = [
+				PartObject(
+					key = 
+						Callback(
+							PlayVideo,
+							url = url,
+							fmt = 'hi'
+						)
+					)
+				],
+			container = Container.MP4,
+			video_codec = VideoCodec.H264,
+			audio_codec = AudioCodec.AAC,
+			video_resolution = '720',
+			audio_channels = 2,
+			optimized_for_streaming = True if Client.Product != 'Plex Web' else False
+			)
+	]
+
+########################################################################################
+@indirect
+def PlayVideo(url, fmt):
+
+	page = HTML.ElementFromURL(url)
+	videobase = page.xpath("//div[@class='video']/script/text()")[0].replace('document.write(doit(','',1).replace('));','',1)
+
+	videoonce = base64.b64decode(videobase)
+	finalvideo = base64.b64decode(videoonce).replace('<iframe src="','',1).replace('" webkitAllowFullScreen="true" mozallowfullscreen="true" allowfullscreen="true" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" width="728" height="410"></iframe>','',1)
+
+	req = HTTP.Request(finalvideo)
+	mp4file = req.content
+
+	url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', mp4file)[9]
+	         
+       	return IndirectResponse(VideoClipObject, key = url)
+

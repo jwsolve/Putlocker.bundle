@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+  <key>URL</key>
+  <dict>
+    <key>Putlocker</key>
+    <dict>
+      <key>URLPatterns</key>
+      <array>
+        <string>http://putlocker.is/</string>
+	<string>http://thevideos.tv/</string>
+      </array>
+    </dict>
+  </dict>
+</dict>
+</plist>
