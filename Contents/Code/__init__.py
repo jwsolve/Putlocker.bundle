@@ -94,6 +94,7 @@ def MainMenu():
 @route(PREFIX + "/showcategory")	
 def ShowCategory(title, category, page_count):
 
+	categorytitle = title
 	oc = ObjectContainer(title1 = title)
 	page_data = HTML.ElementFromURL(BASE_URL + '/' + str(category) + '/' + str(page_count))
 	
@@ -110,7 +111,7 @@ def ShowCategory(title, category, page_count):
 		)
 
 	oc.add(NextPageObject(
-		key = Callback(ShowCategory, title = category, category = category, page_count = int(page_count) + 1),
+		key = Callback(ShowCategory, title = categorytitle, category = category, page_count = int(page_count) + 1),
 		title = "More...",
 		thumb = R(ICON_NEXT)
 			)
