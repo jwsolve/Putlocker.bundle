@@ -17,6 +17,7 @@ ICON_SERIES = "icon-series.png"
 ICON_QUEUE = "icon-queue.png"
 BASE_URL = "http://putlocker.is"
 MOVIES_URL = "http://putlocker.is/genre"
+SEARCH_URL = "http://putlocker.is/search/search.php"
 
 ######################################################################################
 # Set global variables
@@ -40,6 +41,7 @@ def Start():
 def MainMenu():
 
 	oc = ObjectContainer()
+	oc.add(InputDirectoryObject(key = Callback(Search), title='Search', summary='Search OnlineMovies.Pro', prompt='Search for...'))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2014", category="year/2014", page_count = 1), title = "2014", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2013", category="year/2013", page_count = 1), title = "2013", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2012", category="year/2012", page_count = 1), title = "2012", thumb = R(ICON_MOVIES)))
@@ -135,4 +137,27 @@ def EpisodeDetail(title, url):
 		)
 	)	
 	
+	return oc
+
+####################################################################################################
+@route(PREFIX + "/search")
+def Search(query):
+
+	oc = ObjectContainer(title2='Search Results')
+	data = HTTP.Request(SEARCH_URL + '?q=%s' % String.Quote(query, usePlus=True), headers="").content
+
+	html = HTML.ElementFromString(data)
+
+	for movie in html.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
+		url = movie.xpath("./a/@href")[0]
+		title = movie.xpath("./a/@title")[0]
+		thumb = movie.xpath("./a/img/@src")[0]
+
+		oc.add(DirectoryObject(
+				key = Callback(EpisodeDetail, title = title, url = url),
+				title = title,
+				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png')
+				)
+		)
+
 	return oc
