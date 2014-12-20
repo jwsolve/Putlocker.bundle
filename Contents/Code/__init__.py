@@ -41,7 +41,7 @@ def Start():
 def MainMenu():
 
 	oc = ObjectContainer()
-	oc.add(InputDirectoryObject(key = Callback(Search), title='Search', summary='Search OnlineMovies.Pro', prompt='Search for...'))
+	oc.add(InputDirectoryObject(key = Callback(Search), title='Search', summary='Search Putlocker.is', prompt='Search for...'))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2014", category="year/2014", page_count = 1), title = "2014", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2013", category="year/2013", page_count = 1), title = "2013", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="2012", category="year/2012", page_count = 1), title = "2012", thumb = R(ICON_MOVIES)))
