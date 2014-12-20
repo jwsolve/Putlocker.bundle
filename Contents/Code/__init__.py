@@ -148,10 +148,10 @@ def Search(query):
 
 	html = HTML.ElementFromString(data)
 
-	for movie in html.xpath("//table[@cellspacing='0']/"):
-		url = movie.xpath("./tr/td/a/@href")[0]
-		title = movie.xpath("./tr/td/a/@title")[0]
-		thumb = movie.xpath("./tr/td/a/img/@src")[0]
+	for movie in html.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
+		url = movie.xpath("./a/@href")[0]
+		title = movie.xpath("./a/@title")[0]
+		thumb = movie.xpath("./a/img/@src")[0]
 
 		oc.add(DirectoryObject(
 				key = Callback(EpisodeDetail, title = title, url = url),
