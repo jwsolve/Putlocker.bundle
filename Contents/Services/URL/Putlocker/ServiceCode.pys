@@ -41,29 +41,23 @@ def MetadataObjectForURL(url):
 def MediaObjectsForURL(url):
 
 	return [
-        	MediaObject(
+		MediaObject(
 			parts = [
-				PartObject(
-					key = 
-						Callback(
-							PlayVideo,
-							url = url,
-							fmt = 'hi'
-						)
-					)
-				],
+				PartObject(key=Callback(PlayVideo, url=url, post_url=url, res=resolution))
+			],
+			video_resolution = resolution,
+			bitrate = bitrate,
 			container = Container.MP4,
 			video_codec = VideoCodec.H264,
 			audio_codec = AudioCodec.AAC,
-			video_resolution = '720',
 			audio_channels = 2,
-			optimized_for_streaming = True if Client.Product != 'Plex Web' else False
-			)
+			optimized_for_streaming = True
+		) for resolution, bitrate in [('1080', 3000), ('720', 1500), ('360', 750)]
 	]
 
 ########################################################################################
 @indirect
-def PlayVideo(url, fmt):
+def PlayVideo(url, res):
 
 	page = HTML.ElementFromURL(url)
 	videobase = page.xpath("//div[@class='video']/script/text()")[0].replace('document.write(doit(','',1).replace('));','',1)
@@ -71,10 +65,7 @@ def PlayVideo(url, fmt):
 	videoonce = base64.b64decode(videobase)
 	finalvideo = base64.b64decode(videoonce).replace('<iframe src="','',1).replace('" webkitAllowFullScreen="true" mozallowfullscreen="true" allowfullscreen="true" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" width="728" height="410"></iframe>','',1)
 
-	req = HTTP.Request(finalvideo)
-	mp4file = req.content
+	url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', HTTP.Request(finalvideo).content)[8]
 
-	url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', mp4file)[8]
-	         
        	return IndirectResponse(VideoClipObject, key = url)
 
