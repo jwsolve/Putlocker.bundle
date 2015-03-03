@@ -43,16 +43,16 @@ def MediaObjectsForURL(url):
 	return [
 		MediaObject(
 			parts = [
-				PartObject(key=Callback(PlayVideo, url=url, post_url=url, res=resolution))
+				PartObject(key=Callback(PlayVideo, url=url, post_url=url, res=720))
 			],
-			video_resolution = resolution,
-			bitrate = bitrate,
+			video_resolution = 720,
+			bitrate = 1500,
 			container = Container.MP4,
 			video_codec = VideoCodec.H264,
 			audio_codec = AudioCodec.AAC,
 			audio_channels = 2,
-			optimized_for_streaming = True
-		) for resolution, bitrate in [('1080', 3000), ('720', 1500), ('360', 750)]
+			optimized_for_streaming = True if Client.Product != 'Plex Web' else False
+		)
 	]
 
 ########################################################################################
@@ -65,7 +65,7 @@ def PlayVideo(url, res):
 	videoonce = base64.b64decode(videobase)
 	finalvideo = base64.b64decode(videoonce).replace('<iframe src="','',1).replace('" webkitAllowFullScreen="true" mozallowfullscreen="true" allowfullscreen="true" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" width="728" height="410"></iframe>','',1)
 
-	url = re.findall('http://.*/.*mp4', HTTP.Request(finalvideo).content)[0]
+	url = re.findall('http://.*/.*mp4', HTTP.Request(finalvideo).content)[0].split(",")[0].replace('"','',1)
 
        	return IndirectResponse(VideoClipObject, key = url)
 
