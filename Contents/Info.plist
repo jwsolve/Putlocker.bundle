@@ -8,5 +8,9 @@
 	<string>2</string>
 	<key>PlexClientPlatforms</key>
 	<string>*</string>
+	<key>PlexFrameworkFlags</key>
+	<array>
+	<string>UseRealRTMP</string>
+	</array>
 </dict>
 </plist>
