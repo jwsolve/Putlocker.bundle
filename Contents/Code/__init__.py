@@ -20,7 +20,7 @@ MOVIES_URL = "http://putlocker.is/genre"
 SEARCH_URL = "http://putlocker.is/search/search.php"
 
 import updater
-updater.init(repo = 'jwsolve/putlocker.bundle', branch = 'stable')
+updater.init(repo = 'jwsolve/putlocker.bundle', branch = 'master')
 
 ######################################################################################
 # Set global variables
