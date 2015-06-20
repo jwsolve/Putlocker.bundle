@@ -3,7 +3,7 @@ About
 
 This is a plugin that creates a new channel in Plex Media Server to view content indexed by the website Putlocker.is.
 
-Added channel updater via web platform thanks to mikew's code on github.
+Added channel updater via web platform thanks to mikew's updater.py code on github.
 
 System Requirements
 ===================
