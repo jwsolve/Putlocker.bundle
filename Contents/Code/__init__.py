@@ -19,6 +19,9 @@ BASE_URL = "http://putlocker.is"
 MOVIES_URL = "http://putlocker.is/genre"
 SEARCH_URL = "http://putlocker.is/search/search.php"
 
+import updater
+updater.init(repo = 'jwsolve/putlocker.bundle', branch = 'stable')
+
 ######################################################################################
 # Set global variables
 
@@ -41,6 +44,7 @@ def Start():
 def MainMenu():
 
 	oc = ObjectContainer()
+	updater.add_button_to(oc, PerformUpdate)
 	oc.add(InputDirectoryObject(key = Callback(Search), title='Search', summary='Search Putlocker.is', prompt='Search for...'))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="Added Today", category="today", page_count = 1), title = "Added Today", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="Added Yesterday", category="yesterday", page_count = 1), title = "Added Yesterday", thumb = R(ICON_MOVIES)))
@@ -91,6 +95,11 @@ def MainMenu():
 	oc.add(DirectoryObject(key = Callback(ShowCategory, title="Western", category="genre/western", page_count = 1), title = "Western", thumb = R(ICON_MOVIES)))
 	oc.add(DirectoryObject(key = Callback(Bookmarks, title="My Bookmarks"), title = "My Bookmarks", thumb = R(ICON_QUEUE)))
 	return oc
+
+######################################################################################
+@route(PREFIX + "/performupdate")
+def PerformUpdate():
+	return updater.PerformUpdate()
 
 ######################################################################################
 # Creates page url from category and creates objects from that page
