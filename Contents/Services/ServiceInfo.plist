@@ -7,7 +7,7 @@
     <dict>
       <key>URLPatterns</key>
       <array>
-        <string>http://putlocker.is/.+</string>
+        <string>http://putlocker.is</string>
 	<string>http://thevideos.tv/.+</string>
       </array>
     </dict>
