@@ -1,8 +1,5 @@
 from lxml import html
 
-
-BASE_URL = 'http://putlocker.is/'
-
 ########################################################################################
 def NormalizeURL(url):
 
@@ -13,17 +10,26 @@ def MetadataObjectForURL(url):
 
 	page = HTML.ElementFromURL(url)
 	
-	title = page.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
-	description = page.xpath("//td[@align='justify']/text()")[0]
-	thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
-	ratingvalue = url
+	if "putlocker" in url:
+		title = page.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
+		description = page.xpath("//td[@align='justify']/text()")[0]
+		thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
+	
+		return VideoClipObject(
+			title = title,
+			summary = description,
+			thumb = thumb
+		)		
+	else:
+		title = page.xpath("//h1/strong/text()")[0]
+		#description = page.xpath("//td[@align='justify']/text()")[0]
+		thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
 
-	return VideoClipObject(
-		title = title,
-		summary = description,
-		thumb = thumb,
-		rating_key = ratingvalue
-	)
+		return VideoClipObject(
+			title = title,
+			#summary = description,
+			thumb = thumb
+		)
 
 ########################################################################################
 def MediaObjectsForURL(url):
@@ -34,12 +40,12 @@ def MediaObjectsForURL(url):
 				PartObject(key=Callback(PlayVideo, url=url, post_url=url, res=720))
 			],
 			video_resolution = 720,
-			#bitrate = 1500,
-			#container = Container.MP4,
-			#video_codec = VideoCodec.H264,
-			#audio_codec = AudioCodec.AAC,
+			bitrate = 1500,
+			container = Container.MP4,
+			video_codec = VideoCodec.H264,
+			audio_codec = AudioCodec.AAC,
 			audio_channels = 2,
-			optimized_for_streaming = False # if Client.Product != 'Plex Web' else False
+			optimized_for_streaming = True if Client.Product != 'Plex Web' else False
 		)
 	]
 
@@ -77,11 +83,11 @@ def PlayVideo(url, res):
 			beautify = jsbeautifier.beautify(tree.xpath("//script[1]/text()")[0])
 			video_url = Regex('file:"([^"]+)"').search(beautify).groups()[0]
 			return IndirectResponse(VideoClipObject, key = video_url)
-		elif "vodlocker" in vurl:
+		if "vodlocker" in vurl:
 			host = HTTP.Request(vurl.replace(".com/",".com/embed-",1) + '.html').content
 			video_url = Regex('file:\s"([^"]+)"').search(host).groups()[0]
 			return IndirectResponse(VideoClipObject, key = video_url)
-		elif "movshare" in vurl:
+		if "movshare" in vurl:
 			movshare = HTTP.Request(vurl).content
 			filekey = Regex('flashvars\.filekey="([^"]+)";').search(movshare).group(1)
 			file = Regex('flashvars\.file="([^"]+)";').search(movshare).group(1)

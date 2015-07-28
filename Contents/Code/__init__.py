@@ -15,9 +15,6 @@ ICON_NEXT = "icon-next.png"
 ICON_MOVIES = "icon-movies.png"
 ICON_SERIES = "icon-series.png"
 ICON_QUEUE = "icon-queue.png"
-BASE_URL = "http://putlocker.is"
-MOVIES_URL = "http://putlocker.is/genre"
-SEARCH_URL = "http://putlocker.is/search/search.php"
 
 import updater
 updater.init(repo = '/jwsolve/putlocker.bundle', branch = 'master')
@@ -35,7 +32,14 @@ def Start():
 	VideoClipObject.art = R(ART)
 	
 	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0'
-	HTTP.Headers['Referer'] = 'putlocker.is'
+
+####################################################################################################
+def ValidatePrefs():
+
+	try:
+		test = HTTP.Request(Prefs['site_url'], cacheTime=0).content
+	except:
+		return ObjectContainer(header='Invalid URL', message='Please input a valid and existing URL, including http://')
 	
 ######################################################################################
 # Menu hierarchy
@@ -45,6 +49,7 @@ def MainMenu():
 
 	container = ObjectContainer()
 	updater.add_button_to(container, PerformUpdate)
+	container.add(PrefsObject(title='Preferences'))
 	container.add(InputDirectoryObject(key = Callback(Search), title='Search', summary='Search Putlocker.is', prompt='Search for...'))
 	container.add(DirectoryObject(key = Callback(ShowCategory, title="Added Today", category="today", page_count = 1), title = "Added Today", thumb = R(ICON_MOVIES)))
 	container.add(DirectoryObject(key = Callback(ShowCategory, title="Added Yesterday", category="yesterday", page_count = 1), title = "Added Yesterday", thumb = R(ICON_MOVIES)))
@@ -109,19 +114,32 @@ def ShowCategory(title, category, page_count):
 
 	categorytitle = title
 	oc = ObjectContainer(title1 = title)
-	page_data = HTML.ElementFromURL(BASE_URL + '/' + str(category) + '/' + str(page_count))
-	
-	for each in page_data.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
-		url = each.xpath("./a/@href")[0]
-		title = each.xpath("./a/@title")[0]
-		thumb = each.xpath("./a/img/@src")[0]
+	page_data = HTML.ElementFromURL(Prefs['site_url'] + '/' + str(category) + '/' + str(page_count))
 
-		oc.add(DirectoryObject(
-			key = Callback(EpisodeDetail, title = title, url = url),
-			title = title,
-			thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback=R(ICON_MOVIES))
+	if "putlocker" in Prefs['site_url']:
+		for each in page_data.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
+			url = each.xpath("./a/@href")[0]
+			title = each.xpath("./a/@title")[0]
+			thumb = each.xpath("./a/img/@src")[0]
+
+			oc.add(DirectoryObject(
+				key = Callback(EpisodeDetail, title = title, url = url),
+				title = title,
+				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback=R(ICON_MOVIES))
+				)
 			)
-		)
+	else:	
+		for each in page_data.xpath("//div[@class='divThumb']"):
+			url = each.xpath("./a/@href")[0]
+			title = each.xpath("./a/@title")[0]
+			thumb = each.xpath("./a/img/@src")[0]
+
+			oc.add(DirectoryObject(
+				key = Callback(EpisodeDetail, title = title, url = Prefs['site_url'] + url),
+				title = title,
+				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback=R(ICON_MOVIES))
+				)
+			)
 
 	oc.add(NextPageObject(
 		key = Callback(ShowCategory, title = categorytitle, category = category, page_count = int(page_count) + 1),
@@ -140,17 +158,29 @@ def EpisodeDetail(title, url):
 	
 	oc = ObjectContainer(title1 = title)
 	page_data = HTML.ElementFromURL(url)
-	title = page_data.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
-	description = page_data.xpath("//td[@align='justify']/text()")[0]
-	thumb = page_data.xpath("//img[contains(@style,'solid silver')]/@src")[0]
+	if "putlocker" in Prefs['site_url']:
+		title = page_data.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
+		description = page_data.xpath("//td[@align='justify']/text()")[0]
+		thumb = page_data.xpath("//img[contains(@style,'solid silver')]/@src")[0]
 	
-	oc.add(VideoClipObject(
-		url = url,
-		title = title,
-		thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png'),
-		summary = description
-		)
-	)	
+		oc.add(VideoClipObject(
+			url = url,
+			title = title,
+			thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png'),
+			summary = description
+			)
+		)		
+	else:
+		title = page_data.xpath("//h1/strong/text()")[0]
+		#description = page_data.xpath("//td[@align='justify']/text()")[0]
+		thumb = page_data.xpath("//img[contains(@style,'solid silver')]/@src")[0]
+	
+		oc.add(VideoClipObject(
+			url = url,
+			title = title,
+			thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png'),
+			)
+		)	
 	
 	oc.add(DirectoryObject(
 		key = Callback(AddBookmark, title = title, url = url),
@@ -218,7 +248,7 @@ def ClearBookmarks():
 def Search(query):
 
 	oc = ObjectContainer(title2='Search Results')
-	data = HTTP.Request(SEARCH_URL + '?q=%s' % String.Quote(query, usePlus=True), headers="").content
+	data = HTTP.Request(Prefs['site_url'] + "/search/search.php" + '?q=%s' % String.Quote(query, usePlus=True), headers="").content
 
 	html = HTML.ElementFromString(data)
 

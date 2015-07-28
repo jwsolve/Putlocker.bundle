@@ -8,7 +8,8 @@
       <key>URLPatterns</key>
       <array>
         <string>http://putlocker.is</string>
-	<string>http://thevideos.tv/.+</string>
+	   <string>http://thevideos.tv/.+</string>
+	   <string>http://movlocker.com/.+</string>
       </array>
     </dict>
   </dict>
