@@ -1,4 +1,5 @@
 from lxml import html
+import re
 
 ########################################################################################
 def NormalizeURL(url):
@@ -45,7 +46,7 @@ def MediaObjectsForURL(url):
 			video_codec = VideoCodec.H264,
 			audio_codec = AudioCodec.AAC,
 			audio_channels = 2,
-			optimized_for_streaming = True if Client.Product != 'Plex Web' else False
+			#optimized_for_streaming = True if Client.Product != 'Plex Web' else False
 		)
 	]
 
@@ -68,6 +69,14 @@ def PlayVideo(url, res):
 	view_url = sorted(view_url.split(','), key=str.lower)
 
 	for vurl in view_url:
+
+		if "novamov" in vurl:
+			novamov = HTTP.Request(vurl).content
+			filekey = Regex('flashvars\.filekey="([^"]+)";').search(novamov).group(1)
+			file = Regex('flashvars\.file="([^"]+)";').search(novamov).group(1)
+			data = HTTP.Request('http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
+			video_url = data.split('url=')[1].split('&')[0]
+			return IndirectResponse(VideoClipObject, key = video_url)
 		if "thevideos" in vurl:
 			import os
 			import sys

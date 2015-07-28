@@ -252,16 +252,29 @@ def Search(query):
 
 	html = HTML.ElementFromString(data)
 
-	for movie in html.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
-		url = movie.xpath("./a/@href")[0]
-		title = movie.xpath("./a/@title")[0]
-		thumb = movie.xpath("./a/img/@src")[0]
+	if "putlocker" in Prefs['site_url']:
+		for each in html.xpath("//td[contains(@style, 'padding-top: 5px; padding-left: 5px; padding-right: 5px;padding-bottom: 10px;')]"):
+			url = each.xpath("./a/@href")[0]
+			title = each.xpath("./a/@title")[0]
+			thumb = each.xpath("./a/img/@src")[0]
 
-		oc.add(DirectoryObject(
+			oc.add(DirectoryObject(
 				key = Callback(EpisodeDetail, title = title, url = url),
 				title = title,
-				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png')
+				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback=R(ICON_MOVIES))
 				)
-		)
+			)
+	else:	
+		for each in html.xpath("//div[@class='divThumb']"):
+			url = each.xpath("./a/@href")[0]
+			title = each.xpath("./a/@title")[0]
+			thumb = each.xpath("./a/img/@src")[0]
+
+			oc.add(DirectoryObject(
+				key = Callback(EpisodeDetail, title = title, url = Prefs['site_url'] + url),
+				title = title,
+				thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback=R(ICON_MOVIES))
+				)
+			)
 
 	return oc
