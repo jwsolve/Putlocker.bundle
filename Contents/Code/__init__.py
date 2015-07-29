@@ -172,13 +172,14 @@ def EpisodeDetail(title, url):
 		)		
 	else:
 		title = page_data.xpath("//h1/strong/text()")[0]
-		#description = page_data.xpath("//td[@align='justify']/text()")[0]
+		description = page_data.xpath("//td[contains(@style,'justify')]/p/text()")[0]
 		thumb = page_data.xpath("//img[contains(@style,'solid silver')]/@src")[0]
 	
 		oc.add(VideoClipObject(
 			url = url,
 			title = title,
 			thumb = Resource.ContentsOfURLWithFallback(url = thumb, fallback='icon-cover.png'),
+			summary = description
 			)
 		)	
 	

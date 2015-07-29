@@ -1,10 +1,19 @@
 from lxml import html
-import re
+import base64,os,sys,re
+
+try:
+	path = os.getcwd().split("?\\")[1].split('Plug-in Support')[0]+"Plug-ins\Putlocker.bundle\Contents\Services\URL\Putlocker\Modules"
+except:
+	path = os.getcwd().split("Plug-in Support")[0]+"Plug-ins/Putlocker.bundle/Contents/Services/URL/Putlocker/Modules"
+if path not in sys.path:
+	sys.path.append(path)
+import jsbeautifier
 
 ########################################################################################
 def NormalizeURL(url):
 
-	return url.split('&')[0]
+	#return url.split('&')[0]
+	return url
 
 ########################################################################################
 def MetadataObjectForURL(url):
@@ -14,8 +23,8 @@ def MetadataObjectForURL(url):
 	if "putlocker" in url:
 		title = page.xpath("//h2[contains(@style,'padding:0px;margin:0px;display:inline;font-weight:normal;border:0px;font-size:12px;')]/a/text()")[0]
 		description = page.xpath("//td[@align='justify']/text()")[0]
-		thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
-	
+		thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]	
+
 		return VideoClipObject(
 			title = title,
 			summary = description,
@@ -23,12 +32,12 @@ def MetadataObjectForURL(url):
 		)		
 	else:
 		title = page.xpath("//h1/strong/text()")[0]
-		#description = page.xpath("//td[@align='justify']/text()")[0]
+		description = page.xpath("//td[contains(@style,'justify')]/p/text()")[0]
 		thumb = page.xpath("//img[contains(@style,'solid silver')]/@src")[0]
 
 		return VideoClipObject(
 			title = title,
-			#summary = description,
+			summary = description,
 			thumb = thumb
 		)
 
@@ -38,38 +47,59 @@ def MediaObjectsForURL(url):
 	return [
 		MediaObject(
 			parts = [
-				PartObject(key=Callback(PlayVideo, url=url, post_url=url, res=720))
-			],
-			video_resolution = 720,
-			bitrate = 1500,
-			container = Container.MP4,
-			video_codec = VideoCodec.H264,
-			audio_codec = AudioCodec.AAC,
-			audio_channels = 2,
-			#optimized_for_streaming = True if Client.Product != 'Plex Web' else False
+				PartObject(key=Callback(PlayVideo, url=url, post_url=url))
+			]
 		)
 	]
 
 ########################################################################################
 @indirect
-def PlayVideo(url, res):
+def PlayVideo(url):
 
 	view_url = ""
-	hosts = ""
 	video_url = ""
+
 	page = HTML.ElementFromURL(url)
+	if "putlocker" in url:
+		mainframe = page.xpath("//div[@class='video']/script/text()")[0]
+		base64frame = mainframe.lstrip("document.write(doit('").rstrip("'));")
+		frameurl = base64.b64decode(base64.b64decode(base64frame))
+		vurl = Regex('src="([^"]+)"').search(frameurl).group(1)
+	else:
+		vurl = page.xpath("//div[@class='video']/iframe/@src")[0]	
+	if "novamov" in vurl:
+		novamov = HTTP.Request(vurl).content
+		filekey = Regex('flashvars\.filekey="([^"]+)";').search(novamov).group(1)
+		file = Regex('flashvars\.file="([^"]+)";').search(novamov).group(1)
+		data = HTTP.Request('http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
+		video_url = data.split('url=')[1].split('&')[0]
+		return IndirectResponse(VideoClipObject, key = video_url)
+	if "thevideos" in vurl:
+		host = HTTP.Request(vurl).content
+		tree = html.fromstring(host)
+		beautify = jsbeautifier.beautify(tree.xpath("//script[1]/text()")[0])
+		video_url = Regex('file:"([^"]+)"').search(str(beautify)).groups()[0]
+		return IndirectResponse(VideoClipObject, key = video_url)
+	if "vodlocker" in vurl:
+		host = HTTP.Request(vurl.replace(".com/",".com/embed-",1) + '.html').content
+		video_url = Regex('file:\s"([^"]+)"').search(host).groups()[0]
+		return IndirectResponse(VideoClipObject, key = video_url)
+	if "movshare" in vurl:
+		movshare = HTTP.Request(vurl).content
+		filekey = Regex('flashvars\.filekey="([^"]+)";').search(movshare).group(1)
+		file = Regex('flashvars\.file="([^"]+)";').search(movshare).group(1)
+		data = HTTP.Request('http://www.movshare.net/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
+		video_url = data.split('url=')[1].split('&')[0]
+		return IndirectResponse(VideoClipObject, key = video_url)
 
 	for each in page.xpath("//td[@class='entry']/a"):
 		try:
 			view_url = str(each.xpath("./@href")[0]) + "," + view_url
 		except:
 			continue
-
 	view_url = view_url.rstrip(',')
 	view_url = sorted(view_url.split(','), key=str.lower)
-
 	for vurl in view_url:
-
 		if "novamov" in vurl:
 			novamov = HTTP.Request(vurl).content
 			filekey = Regex('flashvars\.filekey="([^"]+)";').search(novamov).group(1)
@@ -78,20 +108,11 @@ def PlayVideo(url, res):
 			video_url = data.split('url=')[1].split('&')[0]
 			return IndirectResponse(VideoClipObject, key = video_url)
 		if "thevideos" in vurl:
-			import os
-			import sys
-			try:
-				path = os.getcwd().split("?\\")[1].split('Plug-in Support')[0]+"Plug-ins\Putlocker.bundle\Contents\Services\URL\Putlocker\Modules"
-			except:
-				path = os.getcwd().split("Plug-in Support")[0]+"Plug-ins/Putlocker.bundle/Contents/Services/URL/Putlocker/Modules"
-			if path not in sys.path:
-				sys.path.append(path)
-			import jsbeautifier
 			host = HTTP.Request(vurl).content
 			tree = html.fromstring(host)
 			beautify = jsbeautifier.beautify(tree.xpath("//script[1]/text()")[0])
-			video_url = Regex('file:"([^"]+)"').search(beautify).groups()[0]
-			return IndirectResponse(VideoClipObject, key = video_url)
+			video_url = Regex('file:"([^"]+)"').search(str(beautify)).groups()[0]
+			return Redirect(video_url)
 		if "vodlocker" in vurl:
 			host = HTTP.Request(vurl.replace(".com/",".com/embed-",1) + '.html').content
 			video_url = Regex('file:\s"([^"]+)"').search(host).groups()[0]
@@ -100,7 +121,6 @@ def PlayVideo(url, res):
 			movshare = HTTP.Request(vurl).content
 			filekey = Regex('flashvars\.filekey="([^"]+)";').search(movshare).group(1)
 			file = Regex('flashvars\.file="([^"]+)";').search(movshare).group(1)
-
 			data = HTTP.Request('http://www.movshare.net/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
 			video_url = data.split('url=')[1].split('&')[0]
 			return IndirectResponse(VideoClipObject, key = video_url)
