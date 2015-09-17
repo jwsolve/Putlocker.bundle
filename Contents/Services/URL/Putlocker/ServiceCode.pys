@@ -53,7 +53,7 @@ def MediaObjectsForURL(url):
 	]
 
 ########################################################################################
-@indirect
+#@indirect
 def PlayVideo(url):
 
 	view_url = ""
@@ -73,24 +73,28 @@ def PlayVideo(url):
 		file = Regex('flashvars\.file="([^"]+)";').search(novamov).group(1)
 		data = HTTP.Request('http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
 		video_url = data.split('url=')[1].split('&')[0]
-		return IndirectResponse(VideoClipObject, key = video_url)
+		#return IndirectResponse(VideoClipObject, key = video_url)
+		return Redirect(video_url)
 	if "thevideos" in vurl:
 		host = HTTP.Request(vurl).content
 		tree = html.fromstring(host)
 		beautify = jsbeautifier.beautify(tree.xpath("//script[1]/text()")[0])
 		video_url = Regex('file:"([^"]+)"').search(str(beautify)).groups()[0]
-		return IndirectResponse(VideoClipObject, key = video_url)
+		#return IndirectResponse(VideoClipObject, key = video_url)
+		return Redirect(video_url)
 	if "vodlocker" in vurl:
 		host = HTTP.Request(vurl.replace(".com/",".com/embed-",1) + '.html').content
 		video_url = Regex('file:\s"([^"]+)"').search(host).groups()[0]
-		return IndirectResponse(VideoClipObject, key = video_url)
+		#return IndirectResponse(VideoClipObject, key = video_url)
+		return Redirect(video_url)
 	if "movshare" in vurl:
 		movshare = HTTP.Request(vurl).content
 		filekey = Regex('flashvars\.filekey="([^"]+)";').search(movshare).group(1)
 		file = Regex('flashvars\.file="([^"]+)";').search(movshare).group(1)
 		data = HTTP.Request('http://www.movshare.net/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
 		video_url = data.split('url=')[1].split('&')[0]
-		return IndirectResponse(VideoClipObject, key = video_url)
+		#return IndirectResponse(VideoClipObject, key = video_url)
+		return Redirect(video_url)
 
 	for each in page.xpath("//td[@class='entry']/a"):
 		try:
@@ -106,7 +110,8 @@ def PlayVideo(url):
 			file = Regex('flashvars\.file="([^"]+)";').search(novamov).group(1)
 			data = HTTP.Request('http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
 			video_url = data.split('url=')[1].split('&')[0]
-			return IndirectResponse(VideoClipObject, key = video_url)
+			#return IndirectResponse(VideoClipObject, key = video_url)
+			return Redirect(video_url)
 		if "thevideos" in vurl:
 			host = HTTP.Request(vurl).content
 			tree = html.fromstring(host)
@@ -116,11 +121,13 @@ def PlayVideo(url):
 		if "vodlocker" in vurl:
 			host = HTTP.Request(vurl.replace(".com/",".com/embed-",1) + '.html').content
 			video_url = Regex('file:\s"([^"]+)"').search(host).groups()[0]
-			return IndirectResponse(VideoClipObject, key = video_url)
+			#return IndirectResponse(VideoClipObject, key = video_url)
+			return Redirect(video_url)
 		if "movshare" in vurl:
 			movshare = HTTP.Request(vurl).content
 			filekey = Regex('flashvars\.filekey="([^"]+)";').search(movshare).group(1)
 			file = Regex('flashvars\.file="([^"]+)";').search(movshare).group(1)
 			data = HTTP.Request('http://www.movshare.net/api/player.api.php?key=%s&file=%s' % (filekey, file)).content
 			video_url = data.split('url=')[1].split('&')[0]
-			return IndirectResponse(VideoClipObject, key = video_url)
+			#return IndirectResponse(VideoClipObject, key = video_url)
+			return Redirect(video_url)
