@@ -3,7 +3,7 @@
                 "id": "site_url",
                 "label": "Site URL",
                 "type": "enum",
-                "values": ["http://putlocker9.com","http://movlocker.com"],
-                "default": "http://putlocker9.com"
+                "values": ["https://www1.putlockers.movie/putlocker","http://movlocker.com"],
+                "default": "https://www1.putlockers.movie/putlocker"
         }
 ]
